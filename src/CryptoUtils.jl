@@ -297,7 +297,7 @@ end
 Output the first `k` prime numbers
 
 ```julia
-julia> julia> get_first_primes(10)
+julia> get_first_primes(10)
 10-element Array{Int64,1}:
   2
   3
@@ -373,7 +373,7 @@ end
 """
     factor_with_ed(n::Integer, e::Integer, d::Integer) -> (Integer, Integer)
 
-Factors `n = p*q` given `(e, d)` s.t. `e*d = 1 mod phi(n)`
+Factors `n = p*q` given `(e, d)` such that `e*d = 1 mod phi(n)`
 Stinson page 204 - algorithm 5.10
 """
 function factor_with_ed(n::Integer, e::Integer, d::Integer)
