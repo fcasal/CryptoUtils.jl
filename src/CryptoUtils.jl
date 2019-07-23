@@ -2,6 +2,9 @@ module CryptoUtils
 
 import Primes: isprime, primes
 
+export legendre, jacobi, n2b, b2n, sqrt_mod_prime, find_quadratic_non_residue, is_quadratic_residue,
+       random_prime, safe_prime, tower_two_prime, get_first_primes, factor_with_ed
+
 
 """
     legendre(a::Integer, p::Integer)
