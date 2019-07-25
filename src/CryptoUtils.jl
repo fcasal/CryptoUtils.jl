@@ -2,9 +2,18 @@ module CryptoUtils
 
 import Primes: isprime, primes
 
-export legendre, jacobi, n2b, b2n, sqrt_mod_prime, find_quadratic_non_residue, is_quadratic_residue,
-       random_prime, safe_prime, tower_two_prime, get_first_primes, factor_with_ed
+export legendre, jacobi, sqrt_mod_prime, find_quadratic_non_residue, is_quadratic_residue,
+       convergents, continued_fraction, surd
 
+export n2b, b2n
+
+export random_prime, safe_prime, tower_two_prime, get_first_primes, twin_primes
+
+export factor_with_ed, wiener
+
+################################################################
+##                   Number theory utilities                  ##
+################################################################
 
 """
     legendre(a::Integer, p::Integer)
@@ -222,29 +231,138 @@ end
 
 
 
-"""
-    tower_two_prime(bitsize::Integer, tower_len::Integer) -> BigInt
 
-Return a random prime of the form `2^towerlen * q + 1`
-with `bitsize` bits and where `q` is also a prime.
 
-```
-julia> tower_two_prime(22, 6)
-2362433
+"""
+    continued_fraction(a::T, b::T) where T <: Integer
+
+Return the continued fraction of the rational `a/b`.
+
+# Example
+```julia
+julia> continued_fraction(31, 73)
+6-element Array{Int64,1}:
+ 0
+ 2
+ 2
+ 1
+ 4
+ 2
 ```
 """
-function tower_two_prime(bitsize::Integer, tower_len::Integer)::BigInt
-    n = oneunit(BigInt)
-    tower = big"2"^tower_len
-    lo = big"2"^(bitsize - tower_len - 1)
-    hi = big"2"^(bitsize - tower_len)
-    while !isprime(n)
-        n = tower * random_prime(bitsize - tower_len) + 1
+function continued_fraction(a::T, b::T) where T <: Integer
+    r = a // b
+    p = Integer(floor(r))
+    fraction = typeof(a)[]
+    push!(fraction, p)
+    f = r - p
+    while f != 0
+        r = 1 // f
+        p = Integer(floor(r))
+        push!(fraction, p)
+        f = r - p
     end
-    return n
+    return fraction
 end
 
 
+"""
+    convergents(a::T, b::T) where T <: Integer
+
+Return the convergents of a rational `a/b`.
+
+# Example
+```julia
+julia> convergents(31, 73)
+6-element Array{Rational,1}:
+  0//1
+  1//2
+  2//5
+  3//7
+ 14//33
+ 31//73
+```
+"""
+function convergents(a::T, b::T) where T <: Integer
+    fraction = continued_fraction(a, b)
+
+    return convergents(fraction)
+end
+
+
+"""
+    convergents(cont_fraction::Array)
+
+Return the convergents given the continued fraction of a rational.
+"""
+function convergents(cont_fraction::Array)
+
+    nums = BigInt[0, 1]
+    dens = BigInt[1, 0]
+
+    converg = Rational[]
+    for a in cont_fraction
+        next_num = a * nums[end] + nums[end - 1]
+        next_den = a * dens[end] + dens[end - 1]
+
+        push!(converg, next_num // next_den)
+        push!(nums, next_num)
+        push!(dens, next_den)
+    end
+    return converg
+end
+
+
+
+"""
+    solve_quadratic(a::Integer, b::Integer, c::Integer)
+
+Return solutions to the equation `a*x^2 + b*x + c`.
+
+Assumes the solutions are integer.
+"""
+function solve_quadratic(a::Integer, b::Integer, c::Integer)
+    d = isqrt(b^2 - 4 * a * c)
+    return div(-b + d, 2 * a), div(-b - d, 2 * a)
+end
+
+
+
+"""
+    surd(n::BigInt, k::Int64)
+
+Return largest integer smaller or equal than the `k`-th root of `n`.
+"""
+function surd(n::BigInt, k::Int64)
+    if k == 1
+        return n
+    elseif k == 0
+        return big"1"
+    end
+
+    low = 1
+    high = n
+    mid = div(low + high, 2)
+    while abs(mid^k - n) >= 0.49
+        if mid^k < n
+            low = mid
+        elseif mid^k > n
+            high = mid
+        end
+        mid = div(low + high, 2)
+        if high - low == 1
+            return low
+        end
+    end
+    return floor(mid)
+end
+
+
+
+
+################################################################
+##                   Prime number utilities                   ##
+################################################################
 
 """
     random_prime(bitsize::Integer) -> BigInt
@@ -263,6 +381,30 @@ function random_prime(bitsize::Integer)::BigInt
     hi = two^bitsize
     while !isprime(n)
         n = rand(lo:hi)
+    end
+    return n
+end
+
+
+
+"""
+    tower_two_prime(bitsize::Integer, tower_len::Integer) -> BigInt
+
+Return a random prime of the form `2^towerlen * q + 1`
+with `bitsize` bits and where `q` is also a prime.
+
+```
+julia> tower_two_prime(22, 6)
+2362433
+```
+"""
+function tower_two_prime(bitsize::Integer, tower_len::Integer)::BigInt
+    n = oneunit(BigInt)
+    tower = big"2"^tower_len
+    lo = big"2"^(bitsize - tower_len - 1)
+    hi = big"2"^(bitsize - tower_len)
+    while !isprime(n)
+        n = tower * random_prime(bitsize - tower_len) + 1
     end
     return n
 end
@@ -297,22 +439,22 @@ end
     get_first_primes(k::Integer) -> Collection
 
 
-Output the first `k` prime numbers
+    Output the first `k` prime numbers
 
-```julia
-julia> get_first_primes(10)
-10-element Array{Int64,1}:
-  2
-  3
+    ```julia
+    julia> get_first_primes(10)
+    10-element Array{Int64,1}:
+    2
+    3
   5
   7
- 11
- 13
- 17
- 19
+  11
+  13
+  17
+  19
  23
  29
-```
+ ```
 """
 function get_first_primes(k::Integer)
     if k <= zero(k)
@@ -326,6 +468,31 @@ function get_first_primes(k::Integer)
 end
 
 
+
+"""
+    twin_primes(bitsize::Integer)
+
+Return a pair of prime numbers `p, p + 2`
+with `bitsize` bits.
+
+This might take a while to run.
+"""
+function twin_primes(bitsize::Integer)
+    q = 1
+    p = 1
+    while !isprime(q)
+        p = random_prime(bitsize)
+        q = p + 2
+    end
+    return p, q
+end
+
+
+
+
+################################################################
+##                   Conversion utilities                     ##
+################################################################
 
 """
     n2b(n::Integer) -> String
@@ -373,6 +540,10 @@ end
 
 
 
+################################################################
+##                   Cryptography utilities                   ##
+################################################################
+
 """
     factor_with_ed(n::Integer, e::Integer, d::Integer) -> (Integer, Integer)
 
@@ -411,6 +582,71 @@ function factor_with_ed(n::Integer, e::Integer, d::Integer)
         if 1 < x < n
             return x, div(n, x)
         end
+    end
+end
+
+
+
+"""
+    wiener(n::Integer, e::Integer, dujella_bound=20)
+
+Factors the semiprime `n`, assuming Wiener's attack holds:
+`d < n^(1/4)`, where `d*e = 1 mod phi(n)`.
+
+Uses Dujella extension attack. Increasing the `dujella_bound` argument
+slows the running time but increases chances of finding the correct `d`
+in case `d ~ n^(1/4)`.
+
+"""
+function wiener(n::Integer, e::Integer, dujella_bound = 20)
+    # usual aproximation of k/d
+    # convergs = convergents(e, n)
+
+    # better aproximation of k/d
+    convergs = convergents(e, n + 1 - 2 * isqrt(n))
+
+    # ignore first convergent 0/1
+    deleteat!(convergs, 1)
+
+    old_d = 1
+
+    # ciphertext to test decryption exponent
+    test_cipher = powermod(2, e, n)
+
+    # build (r, s) pairs
+    # with 1 < s < r < dujella_bound
+    # and gcd(r, s) = 1
+    # https://bib.irb.hr/datoteka/383127.dujececc.pdf
+    pairs_rs = Pair[]
+    for r in 1:dujella_bound
+        for s in 1:r
+            if gcd(r, s) == 1
+                push!(pairs_rs, r => s)
+            end
+        end
+    end
+
+    for fraction in convergs
+        k = numerator(fraction)
+        d = denominator(fraction)
+
+        # regular Wiener attack
+        if powermod(test_cipher, d, n) == 2
+            phi = div(e * d - 1, k)
+            p, q = solve_quadratic(1, phi - n - 1, n)
+            @assert p * q == n
+            return p, q
+        end
+
+        # Dujella extension
+        for p in pairs_rs
+            dujella = p.first * d + p.second * old_d
+            if powermod(test_cipher, dujella, n) == 2
+                return factor_with_ed(n, e, dujella)
+            end
+        end
+
+        old_d = d
     end
 end
 
