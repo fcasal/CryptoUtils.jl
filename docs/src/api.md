@@ -22,11 +22,11 @@ CryptoUtils.get_first_primes
 
 ```@docs
 CryptoUtils.find_quadratic_non_residue
-CryptoUtils.hoc_sqrt
 CryptoUtils.is_quadratic_residue
+CryptoUtils.sqrt_mod_prime
 CryptoUtils.jacobi
 CryptoUtils.legendre
-CryptoUtils.sqrt_mod_prime
+CryptoUtils.hoc_sqrt
 CryptoUtils.tonelli_shanks
 ```
 
