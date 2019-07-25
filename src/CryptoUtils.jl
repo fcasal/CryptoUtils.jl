@@ -11,6 +11,7 @@ export random_prime, safe_prime, tower_two_prime, get_first_primes, twin_primes
 
 export factor_with_ed, wiener
 
+
 ################################################################
 ##                   Number theory utilities                  ##
 ################################################################
@@ -231,8 +232,6 @@ end
 
 
 
-
-
 """
     continued_fraction(a::T, b::T) where T <: Integer
 
@@ -266,6 +265,7 @@ function continued_fraction(a::T, b::T) where T <: Integer
 end
 
 
+
 """
     convergents(a::T, b::T) where T <: Integer
 
@@ -288,6 +288,7 @@ function convergents(a::T, b::T) where T <: Integer
 
     return convergents(fraction)
 end
+
 
 
 """
@@ -596,7 +597,6 @@ Factors the semiprime `n`, assuming Wiener's attack holds:
 Uses Dujella extension attack. Increasing the `dujella_bound` argument
 slows the running time but increases chances of finding the correct `d`
 in case `d ~ n^(1/4)`.
-
 """
 function wiener(n::Integer, e::Integer, dujella_bound = 20)
     # usual aproximation of k/d
