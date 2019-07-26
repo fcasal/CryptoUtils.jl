@@ -20,10 +20,6 @@ julia> ]add CryptoUtils
 ```
 
 
-## Documentation
-Access the full [documentation](https://fcasal.github.io/CryptoUtils.jl/dev/).
-
-
 ## Example
 
 ```julia
