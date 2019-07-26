@@ -440,22 +440,22 @@ end
     get_first_primes(k::Integer) -> Collection
 
 
-    Output the first `k` prime numbers
+Output the first `k` prime numbers.
 
-    ```julia
-    julia> get_first_primes(10)
-    10-element Array{Int64,1}:
-    2
-    3
-  5
-  7
-  11
-  13
-  17
-  19
- 23
- 29
- ```
+```julia
+julia> get_first_primes(10)
+10-element Array{Int64,1}:
+2
+3
+5
+7
+11
+13
+17
+19
+23
+29
+```
 """
 function get_first_primes(k::Integer)
     if k <= zero(k)
