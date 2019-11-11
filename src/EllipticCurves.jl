@@ -17,20 +17,16 @@ function isInfinityPoint(P::EllipticPoint)
 end
 
 
-function double(R::EllipticPoint, P::EllipticPoint, E::EllipticCurve)
+function double(P::EllipticPoint, E::EllipticCurve)
     if isInfinityPoint(P)
-        R.x = -1
-        R.y = -1
-        return
+        return P
     end
 
     g::BigInt, inv::BigInt, _ = gcdx(2 * P.y, E.n)
     if g != 1
         return g
     elseif g == E.n
-        R.x = -1
-        R.y = -1
-        return
+        return InfinityPoint()
     end
 
     lambda::BigInt = mod((3 * P.x^2 + E.a) * inv, E.n)
@@ -127,6 +123,9 @@ function test_mult()
     end
 end
 
+# initial
+# 1.211539 seconds (5.45 M allocations: 153.242 MiB, 11.24% gc time)
+# 21.950572 seconds (112.61 M allocations: 2.961 GiB, 12.85% gc time)
 
 @time test_add()
 @time test_mult()
