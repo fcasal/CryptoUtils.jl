@@ -7,7 +7,8 @@ export legendre, jacobi, sqrt_mod_prime, find_quadratic_non_residue, is_quadrati
 
 export n2b, b2n
 
-export random_prime, safe_prime, tower_two_prime, get_first_primes, twin_primes
+export random_prime, safe_prime, tower_two_prime, get_first_primes, twin_primes,
+       is_generator, get_safe_prime_generator
 
 export factor_with_ed, wiener
 
