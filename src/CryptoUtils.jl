@@ -7,7 +7,8 @@ export legendre, jacobi, sqrt_mod_prime, find_quadratic_non_residue, is_quadrati
 
 export n2b, b2n
 
-export random_prime, safe_prime, tower_two_prime, get_first_primes, twin_primes
+export random_prime, safe_prime, tower_two_prime, get_first_primes, twin_primes,
+       is_generator, get_safe_prime_generator
 
 export factor_with_ed, wiener
 
@@ -358,6 +359,55 @@ function surd(n::BigInt, k::Int64)
     return floor(mid)
 end
 
+
+"""
+    is_generator(g::Integer, q::Integer, factors::Array) -> Bool
+
+Returns true if `g` is a generator of `Z_q` where `q` is prime and
+`factors` is the prime factorization of `q - 1 = p1^e1 * p2^e2 ... * pk^ek`.
+
+```
+q = 2^7 * 5 + 1
+is_generator(2, q, [2, 5]) -> false
+is_generator(3, q, [2, 5]) -> true
+```
+"""
+function is_generator(g::Integer, q::Integer, factors::Array)::Bool
+    if q % 2 == 0 && !isprime(q)
+        throw("Argument q should be an odd prime.")
+    end
+    n = q - 1
+    for factor in factors
+        if powermod(g, div(n,factor), q) == 1
+            return false
+        end
+    end
+    return true
+end
+
+
+"""
+    get_safe_prime_generator(q::BigInt) -> BigInt
+
+Returns a generator of `Z_q`, where `q = 2 * p + 1` with `q, p` primes.
+"""
+function get_safe_prime_generator(q::BigInt)::BigInt
+    if q % 2 == 0 && !isprime(q)
+        throw("Argument q should be an odd prime.")
+    end
+
+    p = div(q - 1, 2)
+    factors = [2, p]
+
+    @label sample_generator
+    g = rand(1 : q - 1)
+
+    if !is_generator(g, q, factors)
+        @goto sample_generator
+    end
+
+    return g
+end
 
 
 
