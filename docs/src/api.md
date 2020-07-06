@@ -32,6 +32,8 @@ CryptoUtils.convergents
 CryptoUtils.surd
 CryptoUtils.hoc_sqrt
 CryptoUtils.tonelli_shanks
+CryptoUtils.is_generator
+CryptoUtils.get_safe_prime_generator
 ```
 
 
