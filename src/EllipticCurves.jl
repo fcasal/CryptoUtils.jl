@@ -6,7 +6,7 @@ struct EllipticCurve
 end
 
 
-mutable struct EllipticPoint
+struct EllipticPoint
     x::BigInt
     y::BigInt
 end
@@ -17,17 +17,17 @@ function isInfinityPoint(P::EllipticPoint)
 end
 
 
-function double(P::EllipticPoint, E::EllipticCurve)
+function double(P::EllipticPoint, E::EllipticCurve)::EllipticPoint
     if isInfinityPoint(P)
         return P
     end
 
     g::BigInt, inv::BigInt, _ = gcdx(2 * P.y, E.n)
-    if g != 1
-        return g
-    elseif g == E.n
-        return InfinityPoint()
-    end
+    # if g != 1
+    #     return g
+    # elseif g == E.n
+    #     return InfinityPoint()
+    # end
 
     lambda::BigInt = mod((3 * P.x^2 + E.a) * inv, E.n)
     new_x::BigInt = mod(lambda^2 - 2 * P.x, E.n)
@@ -37,7 +37,7 @@ function double(P::EllipticPoint, E::EllipticCurve)
 end
 
 
-function add(P::EllipticPoint, Q::EllipticPoint, E::EllipticCurve)
+function add(P::EllipticPoint, Q::EllipticPoint, E::EllipticCurve)::EllipticPoint
     if isInfinityPoint(P)
         return Q
     elseif isInfinityPoint(Q)
@@ -48,18 +48,18 @@ function add(P::EllipticPoint, Q::EllipticPoint, E::EllipticCurve)
         return double(P, E)
     end
 
-    delta_x = mod(Q.x - P.x, E.n)
-    g, inv, _ = gcdx(delta_x, E.n)
-    if 1 < g < E.n
-        return g
-    elseif g == E.n
-        return InfinityPoint()
-    end
+    @time delta_x = mod(Q.x - P.x, E.n)
+    @time g::BigInt, inv::BigInt, _ = gcdx(delta_x, E.n)
+    # if 1 < g < E.n
+    #     return g
+    # elseif g == E.n
+    #     return InfinityPoint()
+    # end
 
-    delta_y = mod(Q.y - P.y, E.n)
-    lambda = mod(delta_y * inv, E.n)
-    new_x = mod(lambda^2 - P.x - Q.x, E.n)
-    new_y = mod(lambda * (P.x - new_x) - P.y, E.n)
+    @time delta_y = mod(Q.y - P.y, E.n)
+    @time lambda = mod(delta_y * inv, E.n)
+    @time new_x = mod(lambda^2 - P.x - Q.x, E.n)
+    @time new_y = mod(lambda * (P.x - new_x) - P.y, E.n)
 
     return EllipticPoint(new_x, new_y)
 end
@@ -71,19 +71,19 @@ function InfinityPoint()
 end
 
 
-function multiply(k::BigInt, P::EllipticPoint, E::EllipticCurve)
+function multiply(k::BigInt, P::EllipticPoint, E::EllipticCurve)::EllipticPoint
     Q = InfinityPoint()
 
-    for b in string(k, base = 2)
+    @inbounds for b in string(k, base = 2)
         Q = double(Q, E)
-        if typeof(Q) != EllipticPoint
-            return Q
-        end
+        # if typeof(Q) != EllipticPoint
+        #     return Q
+        # end
         if b == '1'
             Q = add(Q, P, E)
-            if typeof(Q) != EllipticPoint
-                return Q
-            end
+            # if typeof(Q) != EllipticPoint
+            #     return Q
+            # end
         end
     end
     return Q
@@ -101,9 +101,12 @@ function test_add()
     gy = big"36134250956749795798585127919587881956611106672985015071877198253568414405109"
     P = EllipticPoint(gx, gy)
 
-    for i=1:100000
-        P = add(P, P, E)
-    end
+    P = add(P, P, E)
+    P = add(P, P, E)
+    P = add(P, P, E)
+    # for i=1:100000
+    #     P = add(P, P, E)
+    # end
 end
 
 
@@ -128,4 +131,4 @@ end
 # 21.950572 seconds (112.61 M allocations: 2.961 GiB, 12.85% gc time)
 
 @time test_add()
-@time test_mult()
+# @time test_mult()
